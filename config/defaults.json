@@ -1,0 +1,25 @@
+{
+  "repo": "til-utils",
+  "branch": "main",
+  "folder": "targetFolder",
+
+  "github": {
+    "appId": 0,
+    "certBase64": "",
+    "clientId": "",
+    "clientSecret": "",
+    "installationId": 0,
+    "owner": "carmon"
+  },
+
+  "twitter": {
+    "consumer": {
+      "key": "",
+      "secret": ""        
+    },
+    "access_token": {
+      "key": "",
+      "secret": ""
+    }
+  }
+}

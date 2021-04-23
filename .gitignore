@@ -1,0 +1,15 @@
+# config
+.rpt2_cache
+.vercel
+.vscode
+development.json
+
+# build
+node_modules/
+dist/
+
+# generated
+blog/index.html
+
+# WIP
+soon/ 
