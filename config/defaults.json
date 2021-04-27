@@ -1,8 +1,11 @@
 {
-  "repo": "til-utils",
-  "branch": "main",
-  "folder": "targetFolder",
-
+  "watch": {
+    "branch": "main",
+    "postsFormat": "blog/posts/*.md",
+    "prFrom": "dates",
+    "datesFile": "creator/dates.json"
+  },
+  
   "github": {
     "appId": 0,
     "certBase64": "",

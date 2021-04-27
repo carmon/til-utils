@@ -1,8 +1,11 @@
 declare module 'dos-config' {
   interface Config {
-    repo: string;
-    branch: string;
-    folder: string;
+    watch: {
+      branch: string;
+      postsFormat: string;
+      prFrom: string;
+      datesFile: string;
+    }
 
     github: {
       appId: number;

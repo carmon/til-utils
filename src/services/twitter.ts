@@ -1,7 +1,7 @@
 import Twitter from 'twitter-lite';
-import { TwitterConfig } from "../types";
+import { TwitterConfig, TwitterService } from "../types";
 
-export default async ({ access_token, consumer }: TwitterConfig) => {
+export default async ({ access_token, consumer }: TwitterConfig): Promise<TwitterService> => {
   const app = new Twitter({
     consumer_key: consumer.key,
     consumer_secret: consumer.secret,
