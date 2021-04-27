@@ -12,4 +12,5 @@ dist/
 blog/index.html
 
 # WIP
-soon/ 
+soon/
+rest-client-tests/

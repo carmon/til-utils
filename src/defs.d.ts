@@ -1,5 +1,7 @@
 declare module 'dos-config' {
   interface Config {
+    port: number;
+
     watch: {
       branch: string;
       postsFormat: string;

@@ -5,6 +5,8 @@
     "prFrom": "dates",
     "datesFile": "creator/dates.json"
   },
+
+  "port": 8000,
   
   "github": {
     "appId": 0,
