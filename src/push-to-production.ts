@@ -8,9 +8,8 @@ export default async (
   ref: string,
   posts: string[],
 ) => {
-  ref;
   const titles = await Promise.all(
-    posts.map(async (p: string) => (await github.getBlobText('refs/heads/main', p)).split('\n')[0])
+    posts.map(async (p: string) => (await github.getBlobText(ref, p)).split('\n')[0])
   ); // Get first lines of all posts
   
   console.log(titles);
