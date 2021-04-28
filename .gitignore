@@ -4,6 +4,9 @@
 .vscode
 development.json
 
+# security
+*.pem
+
 # build
 node_modules/
 dist/
@@ -12,4 +15,5 @@ dist/
 blog/index.html
 
 # WIP
-soon/ 
+soon/
+rest-client-tests/

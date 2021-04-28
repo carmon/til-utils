@@ -1,19 +1,10 @@
 declare module 'dos-config' {
   interface Config {
-    watch: {
-      branch: string;
-      postsFormat: string;
-      prFrom: string;
-      datesFile: string;
-    }
-
-    github: {
-      appId: number;
-      clientId: string;
-      clientSecret: string;
+    port: number;
+    
+    githubApp: {
+      id: number;
       certBase64: string;
-      installationId: number;
-      owner: string;
     }
 
     twitter: {
