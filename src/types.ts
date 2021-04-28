@@ -1,23 +1,19 @@
 export type GithubAppConfig = {
-  appId: number;
-  clientId: string;
-  clientSecret: string;
+  id: number;
   certBase64: string;
-  installationId: number;
-  owner: string;
 }
 
 export type GithubService = {
-  createCommit: (repo: string, path: string, parent: string, tree: string) => Promise<string>;
-  createFile: (repo: string, content: string) => Promise<string>;
-  createPR: (repo: string, head: string, base: string) => Promise<GithubPR>;
-  createRef: (repo: string, branch: string, sha: string) => Promise<string>;
-  createTree: (repo: string, path: string, blobSha: string, baseSha: string) => Promise<string>;
-  getBlobText: (repo: string, branch: string, path: string) => Promise<string>;
-  getFileDate: (repo: string, branch: string, path: string) => Promise<string>;
-  getPR: (repo: string, head: string, base: string) => Promise<GithubPR | null>;
-  getRef: (repo: string, branch: string) => Promise<string>;
-  updateRef: (repo: string, branch: string, sha: string) => Promise<void>;
+  createCommit: (path: string, parent: string, tree: string) => Promise<string>;
+  createFile: (content: string) => Promise<string>;
+  createPR: (head: string, base: string) => Promise<GithubPR>;
+  createRef: (branch: string, sha: string) => Promise<string>;
+  createTree: (path: string, blobSha: string, baseSha: string) => Promise<string>;
+  getBlobText: (branch: string, path: string) => Promise<string>;
+  getFileDate: (branch: string, path: string) => Promise<string>;
+  getPR: (head: string, base: string) => Promise<GithubPR | null>;
+  getRef: (branch: string) => Promise<string>;
+  updateRef: (branch: string, sha: string) => Promise<void>;
 };
 
 export type GithubPR = {
@@ -38,4 +34,11 @@ export type TwitterConfig = {
 
 export type TwitterService = {
   tweet: (status: string) => Promise<any>; // TODO: type this properly
+}
+
+export type BlogConfig = {
+  datesFile: string;
+  editing: string;
+  postsFormat: string;
+  production: string;
 }

@@ -4,7 +4,7 @@ import { GithubAppConfig, GithubService } from '../types';
 
 const decodeBase64 = (s: string) => Buffer.from(s, 'base64').toString();
 
-const getBotToken = async (installation_id: number, token: string) => {
+const getBotToken = async (_: string, installation_id: number, token: string) => {
   const { data: { token: userToken } } = await request(
     `POST /app/installations/${installation_id}/access_tokens`, 
     {
@@ -12,30 +12,33 @@ const getBotToken = async (installation_id: number, token: string) => {
         authorization: `bearer ${token}`
       }, 
       data: {
-        installation_id,
         repositories: ['til']
       }
   }) as any;
   return userToken;
 };
 
-export default async (config: GithubAppConfig): Promise<GithubService> => {
-  const { appId, certBase64, installationId, owner } = config;
+export default async (
+    config: GithubAppConfig,
+    fullRepoName: string,
+    installationId: number,
+): Promise<GithubService> => {
+  const { certBase64, id } = config;
   const privateKey = decodeBase64(certBase64) || '';
-
   const { token } = await githubAppJwt({
-    id: appId,
+    id,
     privateKey,
     // this bug is allegedly resolved in @octokit/app (see ghServer.ts),
     // is not solved in @octokit/auth-app (watching both)
     now: Math.floor(Date.now() / 1000) - 60, 
   });
-  const botToken = await getBotToken(installationId, token);
+  const [owner,repo] = fullRepoName.split('/');
+  const botToken = await getBotToken(repo, installationId, token);
 
   return {
-    createCommit: async (repo: string, path: string, parent: string, tree: string) => {
+    createCommit: async (path: string, parent: string, tree: string) => {
       const { data: { sha } } = await request(
-        `POST /repos/${owner}/${repo}/git/commits`,
+        `POST /repos/${fullRepoName}/git/commits`,
         {
           headers: {
             authorization: `bearer ${botToken}`
@@ -49,9 +52,9 @@ export default async (config: GithubAppConfig): Promise<GithubService> => {
       )
       return sha;
     },
-    createFile: async (repo: string, content: string) => {
+    createFile: async (content: string) => {
       const { data: { sha } } = await request(
-        `POST /repos/${owner}/${repo}/git/blobs`,
+        `POST /repos/${fullRepoName}/git/blobs`,
         {
           headers: {
             authorization: `bearer ${botToken}`
@@ -61,9 +64,9 @@ export default async (config: GithubAppConfig): Promise<GithubService> => {
       )
       return sha;
     },
-    createPR: async (repo: string, head: string, base: string) => {
+    createPR: async (head: string, base: string) => {
       const { data: { head: { sha }, number } } = await request(
-        `POST /repos/${owner}/${repo}/pulls`, 
+        `POST /repos/${fullRepoName}/pulls`, 
         {
           headers: {
             authorization: `bearer ${botToken}`
@@ -76,9 +79,9 @@ export default async (config: GithubAppConfig): Promise<GithubService> => {
       }) as any;
       return { number, sha };
     },
-    createRef: async (repo: string, branch: string, commitSha: string) => {
+    createRef: async (branch: string, commitSha: string) => {
       const { data: { object: { sha }} } = await request(
-        `POST /repos/${owner}/${repo}/git/refs`, 
+        `POST /repos/${fullRepoName}/git/refs`, 
         {
           headers: {
             authorization: `bearer ${botToken}`
@@ -88,9 +91,9 @@ export default async (config: GithubAppConfig): Promise<GithubService> => {
       }) as any;
       return sha;
     },
-    createTree: async (repo: string, path: string, blobSha: string, baseSha: string) => {
+    createTree: async (path: string, blobSha: string, baseSha: string) => {
       const { data: { sha } } = await request(
-        `POST /repos/${owner}/${repo}/git/trees`,
+        `POST /repos/${fullRepoName}/git/trees`,
         {
           headers: {
             authorization: `bearer ${botToken}`
@@ -110,7 +113,7 @@ export default async (config: GithubAppConfig): Promise<GithubService> => {
       )
       return sha;
     },
-    getBlobText: async (repo: string, branch: string, path: string) => {
+    getBlobText: async (branch: string, path: string) => {
       const { data: { data: { repository: { object: { text } } } } } = await request("POST /graphql", {
         headers: {
           authorization: `token ${botToken}`,
@@ -132,7 +135,7 @@ export default async (config: GithubAppConfig): Promise<GithubService> => {
       });
       return text as string;
     },
-    getFileDate: async (repo: string, branch: string, path: string) => {
+    getFileDate: async (branch: string, path: string) => {
       const { data: { data: { repository: { object: { blame: { ranges } } } } } } = await request("POST /graphql", {
         headers: {
           authorization: `token ${botToken}`,
@@ -162,9 +165,9 @@ export default async (config: GithubAppConfig): Promise<GithubService> => {
       });
       return ranges.length ? ranges[0].commit.authoredDate : `No date found, does file exists in ${repo}:${branch}?` ;
     },
-    getPR: async (repo: string, head: string, base: string) => {
+    getPR: async (head: string, base: string) => {
       const { data } = await request(
-        `GET /repos/${owner}/${repo}/pulls`, 
+        `GET /repos/${fullRepoName}/pulls`, 
         {
           headers: {
             authorization: `bearer ${botToken}`
@@ -181,9 +184,9 @@ export default async (config: GithubAppConfig): Promise<GithubService> => {
 
       return null;
     },
-    getRef: async (repo: string, branch: string) => {
+    getRef: async (branch: string) => {
       const { data: { object: { sha }} } = await request(
-        `GET /repos/${owner}/${repo}/git/ref/heads/${branch}`, 
+        `GET /repos/${fullRepoName}/git/ref/heads/${branch}`, 
         {
           headers: {
             authorization: `bearer ${botToken}`
@@ -192,9 +195,9 @@ export default async (config: GithubAppConfig): Promise<GithubService> => {
       ) as any;
       return sha;
     },
-    // getTree: async (repo: string, branch: string) => {
+    // getTree: async (branch: string) => {
     //   const { data } = await request(
-    //     `GET /repos/${owner}/${repo}/git/trees`, 
+    //     `GET /repos/${fullRepoName}/git/trees`, 
     //     {
     //       headers: {
     //         authorization: `bearer ${botToken}`
@@ -204,9 +207,9 @@ export default async (config: GithubAppConfig): Promise<GithubService> => {
 
     //   console.log(data);
     // },
-    updateRef: async (repo: string, branch: string, sha: string) => {
+    updateRef: async (branch: string, sha: string) => {
       const { data } = await request(
-        `PATCH /repos/${owner}/${repo}/git/refs/heads/${branch}`, 
+        `PATCH /repos/${fullRepoName}/git/refs/heads/${branch}`, 
         {
           headers: {
             authorization: `bearer ${botToken}`

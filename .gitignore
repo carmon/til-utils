@@ -4,6 +4,9 @@
 .vscode
 development.json
 
+# security
+*.pem
+
 # build
 node_modules/
 dist/

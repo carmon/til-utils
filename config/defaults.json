@@ -1,20 +1,9 @@
 {
-  "watch": {
-    "branch": "main",
-    "postsFormat": "blog/posts/*.md",
-    "prFrom": "dates",
-    "datesFile": "creator/dates.json"
-  },
-
   "port": 8000,
   
-  "github": {
-    "appId": 0,
-    "certBase64": "",
-    "clientId": "",
-    "clientSecret": "",
-    "installationId": 0,
-    "owner": "carmon"
+  "githubApp": {
+    "id": 0,
+    "certBase64": ""
   },
 
   "twitter": {
