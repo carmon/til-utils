@@ -1,6 +1,0 @@
-{
-    "editing": "main",
-    "production": "prod",
-    "postsFormat": "blog/posts/*.md",
-    "datesFile": "creator/dates.json"
-}

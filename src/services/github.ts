@@ -2,19 +2,16 @@ import { githubAppJwt } from "universal-github-app-jwt";
 import { request } from "@octokit/request";
 import { GithubAppConfig, GithubService } from '../types';
 
-const decodeBase64 = (s: string) => Buffer.from(s, 'base64').toString();
+const atob = (s: string) => Buffer.from(s, 'base64').toString();
+const btoa = (s: string) => Buffer.from(s).toString('base64');
 
-const getBotToken = async (_: string, installation_id: number, token: string) => {
+const getBotToken = async (repo: string, installation_id: number, token: string) => {
   const { data: { token: userToken } } = await request(
     `POST /app/installations/${installation_id}/access_tokens`, 
     {
-      headers: {
-        authorization: `bearer ${token}`
-      }, 
-      data: {
-        repositories: ['til']
-      }
-  }) as any;
+      headers: { authorization: `bearer ${token}` }, 
+      data: { repositories: [repo] }
+    }) as any;
   return userToken;
 };
 
@@ -24,7 +21,7 @@ export default async (
     installationId: number,
 ): Promise<GithubService> => {
   const { certBase64, id } = config;
-  const privateKey = decodeBase64(certBase64) || '';
+  const privateKey = atob(certBase64) || '';
   const { token } = await githubAppJwt({
     id,
     privateKey,
@@ -36,23 +33,7 @@ export default async (
   const botToken = await getBotToken(repo, installationId, token);
 
   return {
-    createCommit: async (path: string, parent: string, tree: string) => {
-      const { data: { sha } } = await request(
-        `POST /repos/${fullRepoName}/git/commits`,
-        {
-          headers: {
-            authorization: `bearer ${botToken}`
-          }, 
-          data: { 
-            message: `Publish ${path}`,
-            parents: [parent],
-            tree
-          }
-        }
-      )
-      return sha;
-    },
-    createFile: async (content: string) => {
+    createBlob: async (content: string) => {
       const { data: { sha } } = await request(
         `POST /repos/${fullRepoName}/git/blobs`,
         {
@@ -63,6 +44,38 @@ export default async (
         }
       )
       return sha;
+    },
+    createCommit: async (message: string, tree: string, parent?: string) => {
+      const { data: { sha } } = await request(
+        `POST /repos/${fullRepoName}/git/commits`,
+        {
+          headers: {
+            authorization: `bearer ${botToken}`
+          }, 
+          data: { 
+            message,
+            parents: parent ? [parent] : [],
+            tree
+          }
+        }
+      )
+      return sha;
+    },
+    createFile: async (path: string, content: string, message: string) => {
+      const res = await request(
+        `PUT /repos/${fullRepoName}/contents/${path}`,
+        {
+          headers: {
+            authorization: `bearer ${botToken}`
+          }, 
+          data: { 
+            content: btoa(content),
+            message
+          }
+        }
+      )
+      console.log(res);
+      return "";
     },
     createPR: async (head: string, base: string) => {
       const { data: { head: { sha }, number } } = await request(
@@ -91,7 +104,7 @@ export default async (
       }) as any;
       return sha;
     },
-    createTree: async (path: string, blobSha: string, baseSha: string) => {
+    createTree: async (path: string, blobSha: string, baseSha?: string) => {
       const { data: { sha } } = await request(
         `POST /repos/${fullRepoName}/git/trees`,
         {
@@ -112,6 +125,22 @@ export default async (
         }
       )
       return sha;
+    },
+    generateBlogRepo: async (owner: string, name: string) => {
+      const res = await request(
+        `POST /repos/carmon/til-template/generate`,
+        {
+          headers: {
+            Accept: 'application/vnd.github.baptiste-preview+json', // needed while endpoint is still in preview
+            authorization: `bearer ${botToken}`
+          }, 
+          data: {
+            owner,
+            name
+          }
+        }
+      )
+      console.log(res);
     },
     getBlobText: async (branch: string, path: string) => {
       const { data: { data: { repository: { object: { text } } } } } = await request("POST /graphql", {
@@ -134,6 +163,17 @@ export default async (
         },
       });
       return text as string;
+    },
+    getBranches: async () => {
+      const res = await request(
+        `GET /repos/${fullRepoName}/branches`,
+        {
+          headers: {
+            authorization: `bearer ${botToken}`
+          }
+        }
+      );
+      console.log(res);
     },
     getFileDate: async (branch: string, path: string) => {
       const { data: { data: { repository: { object: { blame: { ranges } } } } } } = await request("POST /graphql", {

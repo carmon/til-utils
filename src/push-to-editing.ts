@@ -22,10 +22,10 @@ export default async (
   const obj = { ...JSON.parse(json), ...dates };
   
   // Create blob, tree and commit
-  const blobSha = await github.createFile(JSON.stringify(obj));
+  const blobSha = await github.createBlob(JSON.stringify(obj));
   const treeSha = await github.createTree(datesFile, blobSha, sourceRefSha);
   const commitSha = await github.createCommit(
-    `${datesFile} after ${posts.length > 1 
+    `Publish ${datesFile} after ${posts.length > 1 
         ? posts.slice(0, posts.length - 1).join(', ') + ' and ' + posts[posts.length - 1]
         : posts[0]
     }.`.replace('\n', ' '), 
