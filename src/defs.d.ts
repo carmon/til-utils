@@ -7,6 +7,15 @@ declare module 'dos-config' {
       certBase64: string;
     }
 
+    oauthApp: {
+      clientId: string;
+      clientSecret: string;
+    }
+
+    vercel: {
+      token: string;
+    }
+
     twitter: {
       consumer: {
         key: string;

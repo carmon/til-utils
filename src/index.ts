@@ -2,8 +2,12 @@ import * as http from 'http';
 import config from 'dos-config';
 import minimatch from 'minimatch';
 
-import createGithub from './services/github';
+import createGithub, { createOAuthApp } from './services/github';
 import createTwitter from './services/twitter';
+import authView from './views/authentication';
+import formView from './views/form';
+import createdView from './views/created';
+import failedView from './views/failed';
 
 import handlePushToEditing from './push-to-editing';
 import handlePushToProduction from './push-to-production';
@@ -13,16 +17,43 @@ const { port } = config;
 http
   .createServer((req, res) => 
     {
-      // Only listen for PUSH event webhooks
-      if (req.method !== 'POST') {
-        res.end('Only POST request, gracias!')
-        return;
-      }
-
       let data = '';
       req
         .on('data', chunk => { data += chunk; })
         .on('end', async () => {
+          if (req.url === '/auth') {
+            res.writeHead(302);
+            res.end(authView(config.oauthApp.clientId));
+            return;
+          }
+
+          if (req.url?.includes('/oauth')) {
+            const code = req.url.split('=')[1];
+            res.writeHead(200);
+            res.end(formView(code))
+            return;
+          }
+
+          if(req.url?.includes('/create')) {
+            const match = req.url.match(/\/create\?code=([\w.-]+)&name=([\w\@.-]+)/);
+            if(match) {
+              const [, code, name] = match;
+              const github = await createOAuthApp(
+                config.oauthApp.clientId,
+                config.oauthApp.clientSecret,
+                code, 
+              );
+              const created = await github.generateBlogRepo(name);
+              const owner = await github.getOwner();              
+              res.writeHead(200);
+
+              res.end(created ? createdView(owner, name) : failedView(name));
+              return;
+            }
+
+          }
+
+
           try {
             const event = req.headers['x-github-event'];
             if (event === 'installation_repositories') {

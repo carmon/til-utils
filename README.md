@@ -10,7 +10,12 @@ be more differences in code in the future. Thanks for understanding.
 
 ---
 
-## Webhooks
+## Currently working version
+
+- Web client for authentication web flow with github oauth app
+- New static blog repository is generated with experimental github templates API
+
+## Ideal Case: Github APP Webhooks
 
 Current webhooks listen for PUSH events. 
 

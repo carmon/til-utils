@@ -6,6 +6,15 @@
     "certBase64": ""
   },
 
+  "oauthApp": {
+    "clientId": "",
+    "clientSecret": ""
+  },
+  
+  "vercel": {
+    "token": ""
+  },
+
   "twitter": {
     "consumer": {
       "key": "",

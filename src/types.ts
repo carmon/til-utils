@@ -3,6 +3,16 @@ export type GithubAppConfig = {
   certBase64: string;
 }
 
+export type GithubOAuthConfig = {
+  clientId: string;
+  clientSecret: string;
+};
+
+export type GithubOAuthService = {
+  generateBlogRepo: (name: string) => Promise<boolean>;
+  getOwner: () => Promise<string>;
+};
+
 export type GithubService = {
   createBlob: (content: string) => Promise<string>;
   createCommit: (message: string, tree: string, parent?: string) => Promise<string>;
