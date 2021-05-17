@@ -105,6 +105,17 @@ export default async (
       return sha;
     },
     createCommit: async (message: string, tree: string, parent?: string) => {
+      console.log(fullRepoName);
+      console.log({
+        headers: {
+          authorization: `bearer ${botToken}`
+        }, 
+        data: { 
+          message,
+          parents: parent ? [parent] : [],
+          tree
+        }
+      });
       const { data: { sha } } = await request(
         `POST /repos/${fullRepoName}/git/commits`,
         {
